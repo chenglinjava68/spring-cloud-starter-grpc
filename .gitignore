@@ -2,3 +2,4 @@
 **/*.iml
 target
 .idea
+!/spring-cloud-starter-grpc-examples/test/test-client/src/main/test/com/icekredit/examples/test/client/service/impl/TestServiceImplTest.java
