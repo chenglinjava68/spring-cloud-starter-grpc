@@ -1,0 +1,17 @@
+spring:
+  cloud:
+    consul:
+      discovery:
+        enabled: true
+        register: false
+      host: 127.0.0.1
+      port: 8500
+      enabled: true
+    grpc:
+      client:
+        package-to-scan: com.icekredit.examples.test.client.grpc
+
+server:
+  port: 8081
+
+debug: true

@@ -1,0 +1,18 @@
+spring:
+  grpc:
+    server:
+      service-id: phone-service
+      port: 50051
+      hs-ha:
+        core-pool-size: 10
+        max-pool-size: 20
+        queue-size: 1000
+        keep-alive-time-ms: 3000
+
+endpoints:
+  actuator:
+    sensitive: false
+    enabled: true
+management:
+  security:
+    enabled: false
