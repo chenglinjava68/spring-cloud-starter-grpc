@@ -2,6 +2,7 @@ package com.icekredit.rpc.grpc.client.factory;
 
 import com.icekredit.rpc.grpc.client.exception.GrpcClientDefinitionException;
 import com.icekredit.rpc.grpc.client.scanner.GrpcClientStubDefinition;
+import io.grpc.stub.AbstractStub;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

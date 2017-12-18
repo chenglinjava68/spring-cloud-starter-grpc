@@ -12,6 +12,7 @@ import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.AbstractStub;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -20,6 +21,7 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.Vector;
 
 public class ServerNodeUpdateAction implements UpdateAction {
     private volatile GrpcConsulServerNodeList serverNodeList;
@@ -31,11 +33,11 @@ public class ServerNodeUpdateAction implements UpdateAction {
 
     private Logger logger = LoggerFactory.getLogger(ServerNodeUpdateAction.class);
 
-    public ServerNodeUpdateAction(String serviceName, List<GrpcClientStubDefinition> stubDefinitions) {
+    ServerNodeUpdateAction(String serviceName, List<GrpcClientStubDefinition> stubDefinitions) {
         this.serviceName = serviceName;
         this.stubDefinitions = stubDefinitions;
 
-        serverNodeWrappers = new ArrayList<>();
+        serverNodeWrappers = new Vector<>();
     }
 
     @Override
@@ -45,6 +47,11 @@ public class ServerNodeUpdateAction implements UpdateAction {
                 if (serverNodeList == null) {
                     String consulHost = GrpcClientContextFactory.context().getConsulProperties().getHost();
                     int consulPort = GrpcClientContextFactory.context().getConsulProperties().getPort();
+
+                    //if application context has not start up,omit current update action
+                    if (StringUtils.isBlank(consulHost)){
+                        return;
+                    }
 
                     logger.info("Initialize the consul agent with host:{} and port:{}",consulHost,consulPort);
 
@@ -94,7 +101,7 @@ public class ServerNodeUpdateAction implements UpdateAction {
                     StubWrapper stubWrapper = new StubWrapper();
                     AbstractStub abstractStub;
                     for (GrpcClientStubDefinition stubDefinition : stubDefinitions) {
-                        Constructor stubConstructor;
+                        Constructor<? extends AbstractStub> stubConstructor;
                         try {
                             stubConstructor = stubDefinition.getClientStubClass().getDeclaredConstructor(Channel.class);
                             stubConstructor.setAccessible(true);
@@ -104,7 +111,7 @@ public class ServerNodeUpdateAction implements UpdateAction {
                             continue;
                         }
 
-                        abstractStub = (AbstractStub) BeanUtils.instantiateClass(stubConstructor, channel);
+                        abstractStub = BeanUtils.instantiateClass(stubConstructor, channel);
 
                         String stubClassName = stubDefinition.getClientStubClass().getSimpleName();
                         if (stubClassName.endsWith("BlockingStub")) {
@@ -149,9 +156,5 @@ public class ServerNodeUpdateAction implements UpdateAction {
 
     public List<ServerNodeWrapper> getServerNodeWrappers() {
         return serverNodeWrappers;
-    }
-
-    public void setServerNodeWrappers(List<ServerNodeWrapper> serverNodeWrappers) {
-        this.serverNodeWrappers = serverNodeWrappers;
     }
 }

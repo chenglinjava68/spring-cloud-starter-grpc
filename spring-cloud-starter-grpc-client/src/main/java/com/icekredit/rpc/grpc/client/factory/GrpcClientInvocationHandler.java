@@ -2,6 +2,7 @@ package com.icekredit.rpc.grpc.client.factory;
 
 import com.icekredit.rpc.grpc.client.scanner.GrpcClientStubDefinition;
 import com.icekredit.rpc.grpc.client.wrapper.ServerNodeWrapper;
+import io.grpc.stub.AbstractStub;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;

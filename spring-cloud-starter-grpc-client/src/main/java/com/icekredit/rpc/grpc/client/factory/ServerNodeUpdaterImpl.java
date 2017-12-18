@@ -15,7 +15,7 @@ public class ServerNodeUpdaterImpl implements ServerNodeUpdater {
     private volatile ScheduledFuture<?> scheduledFuture;
 
     private final long initialDelayMs;
-    private static final long DEFAULT_INITIAL_DELAY_MS = 30000;
+    private static final long DEFAULT_INITIAL_DELAY_MS = 10000;
 
     private final long refreshIntervalMs;
     private static final long DEFAULT_REFRESH_INTERVAL_MS = 30000;

@@ -1,24 +1,21 @@
 package com.icekredit.rpc.grpc.client.wrapper;
 
-import com.icekredit.rpc.grpc.client.consul.GrpcServerNode;
+import com.icekredit.rpc.grpc.client.consul.GrpcConsulServerNode;
 
-/**
- * Created by icekredit on 17-12-14.
- */
 public class ServerNodeWrapper {
-    private GrpcServerNode grpcServerNode;
+    private GrpcConsulServerNode grpcServerNode;
     private ChannelWrapper channelWrapper;
 
-    public ServerNodeWrapper(GrpcServerNode grpcServerNode, ChannelWrapper channelWrapper) {
+    public ServerNodeWrapper(GrpcConsulServerNode grpcServerNode, ChannelWrapper channelWrapper) {
         this.grpcServerNode = grpcServerNode;
         this.channelWrapper = channelWrapper;
     }
 
-    public GrpcServerNode getGrpcServerNode() {
+    public GrpcConsulServerNode getGrpcServerNode() {
         return grpcServerNode;
     }
 
-    public void setGrpcServerNode(GrpcServerNode grpcServerNode) {
+    public void setGrpcServerNode(GrpcConsulServerNode grpcServerNode) {
         this.grpcServerNode = grpcServerNode;
     }
 

@@ -22,8 +22,7 @@ import org.springframework.util.ClassUtils;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class GrpcClientRegistrar implements ImportBeanDefinitionRegistrar,
-        ResourceLoaderAware, EnvironmentAware {
+public class GrpcClientRegistrar implements ImportBeanDefinitionRegistrar,ResourceLoaderAware, EnvironmentAware {
     private ResourceLoader resourceLoader;
 
     private Environment environment;
@@ -62,7 +61,7 @@ public class GrpcClientRegistrar implements ImportBeanDefinitionRegistrar,
         //如果注解中仍然没有指定basePackages，那么扫描主类所在根包package
         if (ArrayUtils.isEmpty(configuredBasePackages)
                 && ArrayUtils.isEmpty(annotatedBasePackages)){
-            logger.info("No base packages specified for grpc client!We will scan the root packages:{}",rootPackage);
+            logger.info("No base packages specified for grpc client!We will scan the root package:{}",rootPackage);
 
             scanner.scan(rootPackage);
         } else if (ArrayUtils.isNotEmpty(configuredBasePackages)){
@@ -88,13 +87,13 @@ public class GrpcClientRegistrar implements ImportBeanDefinitionRegistrar,
             return new String[0];
         }
 
-        String[] basePackages = basePackagesStr.split(",");
+        String[] basePackagesParts = basePackagesStr.split(",");
 
-        return (String[]) Arrays.stream(basePackages)
+        return Arrays.stream(basePackagesParts)
                 .filter(StringUtils::isNotBlank)
                 .map(String::trim)
                 .distinct()
-                .collect(Collectors.toSet()).toArray();
+                .collect(Collectors.toSet()).toArray(new String[0]);
     }
 
     /**

@@ -4,6 +4,8 @@ import com.icekredit.rpc.grpc.client.annotation.GrpcClient;
 import com.icekredit.rpc.grpc.client.annotation.GrpcClientStub;
 import com.icekredit.rpc.grpc.client.exception.GrpcClientDefinitionException;
 import com.icekredit.rpc.grpc.client.factory.GrpcClientFactoryBean;
+import io.grpc.stub.AbstractStub;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +19,7 @@ import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -36,7 +39,7 @@ public class GrpcClientBeanScanner extends ClassPathBeanDefinitionScanner{
     protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
         Set<BeanDefinitionHolder> definitionHolders = super.doScan(basePackages);
 
-        logger.info("The packages to scan:[{}]", StringUtils.join(basePackages,","));
+        logger.info("The packages to scan:{}", Arrays.toString(basePackages));
 
         for (BeanDefinitionHolder definitionHolder:definitionHolders){
             GenericBeanDefinition genericBeanDefinition = (GenericBeanDefinition) definitionHolder.getBeanDefinition();
@@ -73,8 +76,8 @@ public class GrpcClientBeanScanner extends ClassPathBeanDefinitionScanner{
             }
 
             GrpcClientStub[] grpcClientStubs = grpcClient.grpcClientStubs();
-            if (grpcClientStubs.length == 0){
-                String msg = String.format("No included client stub has been specified for GrpcClient:%s",genericBeanDefinition.getBeanClassName());
+            if (ArrayUtils.isEmpty(grpcClientStubs)){
+                String msg = String.format("No client stub has been specified for GrpcClient:%s",genericBeanDefinition.getBeanClassName());
 
                 logger.error(msg);
 
@@ -83,15 +86,14 @@ public class GrpcClientBeanScanner extends ClassPathBeanDefinitionScanner{
 
             List<GrpcClientStubDefinition> stubDefinitions = new ArrayList<>();
             for (GrpcClientStub grpcClientStub:grpcClientStubs){
-                String qualifier = grpcClientStub.name();
-                qualifier = StringUtils.isBlank(qualifier) ? grpcClientStub.value() : qualifier;
-                if (StringUtils.isBlank(qualifier)){
-                    logger.error("Neither name nor value has been specified for GrpcClientStub in GrpcClient:{}",genericBeanDefinition.getBeanClassName());
-
-                    continue;
+                Class<? extends AbstractStub> clientStubClass = grpcClientStub.clientStubClass();
+                if (clientStubClass.equals(AbstractStub.class)){
+                    logger.error("No client stub class has been specified for GrpcClientStub in GrpcClient:{}",genericBeanDefinition.getBeanClassName());
                 }
 
-                Class clientStubClass = grpcClientStub.clientStubClass();
+                String qualifier = grpcClientStub.name();
+                qualifier = StringUtils.isBlank(qualifier) ? grpcClientStub.value() : qualifier;
+                qualifier = StringUtils.isBlank(qualifier) ? StringUtils.uncapitalize(clientStubClass.getSimpleName()) : qualifier;
 
                 stubDefinitions.add(new GrpcClientStubDefinition(qualifier,clientStubClass));
             }
