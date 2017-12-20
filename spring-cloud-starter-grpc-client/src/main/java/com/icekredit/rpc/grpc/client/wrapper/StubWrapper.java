@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class StubWrapper {
     private Map<String,AbstractStub> stubMap;
@@ -14,7 +15,7 @@ public class StubWrapper {
     private static final String FUTURE_STUB = "futureStub";
 
     public StubWrapper() {
-        this.stubMap = new HashMap<>(2);
+        this.stubMap = new ConcurrentHashMap<>(2);
     }
 
     public void setStub(AbstractStub stub){

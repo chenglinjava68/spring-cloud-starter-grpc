@@ -7,10 +7,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.bind.RelaxedPropertyResolver;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.annotation.AnnotationBeanNameGenerator;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.core.env.Environment;
@@ -54,16 +56,16 @@ public class GrpcClientRegistrar implements ImportBeanDefinitionRegistrar,Resour
 
         String[] configuredBasePackages = getConfiguredBasePackages();
         String[] annotatedBasePackages = getAnnotatedBasePackages((StandardAnnotationMetadata) metadata);
-        String rootPackage = getRootPackage((StandardAnnotationMetadata) metadata);
+        String[] rootPackages = getMainScanPackages((StandardAnnotationMetadata) metadata);
 
         //如果配置文件中指定了basePackages，那么直接扫描配置文件中指定的basePackages
         //否则扫描注解中指定的basePackages，
-        //如果注解中仍然没有指定basePackages，那么扫描主类所在根包package
+        //如果注解中仍然没有指定basePackages，那么扫描主类所在根包package或者由SpringBootApplication注解指定的basePackages
         if (ArrayUtils.isEmpty(configuredBasePackages)
                 && ArrayUtils.isEmpty(annotatedBasePackages)){
-            logger.info("No base packages specified for grpc client!We will scan the root package:{}",rootPackage);
+            logger.info("No base packages specified for grpc client!We will scan the root package:{}",Arrays.toString(rootPackages));
 
-            scanner.scan(rootPackage);
+            scanner.scan(rootPackages);
         } else if (ArrayUtils.isNotEmpty(configuredBasePackages)){
             logger.info("Configured base packages founded:{}",Arrays.toString(configuredBasePackages));
 
@@ -116,7 +118,34 @@ public class GrpcClientRegistrar implements ImportBeanDefinitionRegistrar,Resour
         return basePackages;
     }
 
-    private String getRootPackage(StandardAnnotationMetadata standardAnnotationMetadata){
-        return ClassUtils.getPackageName(standardAnnotationMetadata.getIntrospectedClass());
+    /**
+     * 获取当前主类扫描的包
+     * @param standardAnnotationMetadata 主类注解元数据
+     * @return 如果主类包含SpringBootApplication注解，那么返回SpringBootApplication注解中scanBasePackages。否则如果主类包含ComponentScan，那么返回ComponentScan注解中basePackages，否则返回主类所在包
+     */
+    private String[] getMainScanPackages(StandardAnnotationMetadata standardAnnotationMetadata){
+        if (standardAnnotationMetadata.hasAnnotation(SpringBootApplication.class.getName())){
+            Map<String, Object> attrs = standardAnnotationMetadata
+                    .getAnnotationAttributes(SpringBootApplication.class.getName());
+
+            String[] basePackages = (String[]) attrs.get("scanBasePackages");
+
+            if (ArrayUtils.isNotEmpty(basePackages)){
+                return basePackages;
+            }
+        }
+
+        if (standardAnnotationMetadata.hasAnnotation(ComponentScan.class.getName())){
+            Map<String, Object> attrs = standardAnnotationMetadata
+                    .getAnnotationAttributes(ComponentScan.class.getName());
+
+            String[] basePackages = (String[]) attrs.get("basePackages");
+
+            if (ArrayUtils.isNotEmpty(basePackages)){
+                return basePackages;
+            }
+        }
+
+        return new String[]{ClassUtils.getPackageName(standardAnnotationMetadata.getIntrospectedClass())};
     }
 }
